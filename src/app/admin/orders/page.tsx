@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Order, OrderStatus } from '@/lib/types';
-import { getOrders, updateOrderStatus, formatPrice, onStorageChange } from '@/lib/storage';
+import { fetchOrders, updateOrderStatus, formatPrice } from '@/lib/storage';
 import styles from '../admin.module.css';
 
 const statusColumns: { status: OrderStatus; label: string; color: string }[] = [
@@ -27,8 +27,8 @@ export default function OrdersPage() {
     const pathname = usePathname();
     const [orders, setOrders] = useState<Order[]>([]);
 
-    const loadOrders = () => {
-        const allOrders = getOrders();
+    const loadOrders = async () => {
+        const allOrders = await fetchOrders();
         setOrders(allOrders);
     };
 
@@ -36,23 +36,19 @@ export default function OrdersPage() {
         loadOrders();
 
         // Listen for changes
-        const unsubscribe = onStorageChange((key) => {
-            if (key.includes('orders')) {
-                loadOrders();
-            }
-        });
+        // For API implementation, we rely on polling or we could implement a websocket/SSE
+        // For now, removing the localStorage listener and relying on polling as that's simpler for this "file-db" mock
 
         // Poll every 3 seconds
         const interval = setInterval(loadOrders, 3000);
 
         return () => {
-            unsubscribe();
             clearInterval(interval);
         };
     }, []);
 
-    const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-        updateOrderStatus(orderId, newStatus);
+    const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+        await updateOrderStatus(orderId, newStatus);
         loadOrders();
     };
 

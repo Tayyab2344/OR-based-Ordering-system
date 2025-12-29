@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import { Table } from '@/lib/types';
-import { getTables, saveTables, initializeData } from '@/lib/storage';
+import { fetchTables, createTable, initializeData } from '@/lib/storage';
 import { sampleMenuItems, sampleTables, sampleOrders } from '@/lib/data';
 import styles from '../admin.module.css';
 
@@ -16,9 +16,14 @@ export default function TablesPage() {
     const [showQRModal, setShowQRModal] = useState(false);
 
     useEffect(() => {
-        initializeData(sampleMenuItems, sampleTables, sampleOrders);
-        const allTables = getTables();
-        setTables(allTables.length > 0 ? allTables : sampleTables);
+        initializeData(sampleMenuItems, [], []); // No internal legacy init for tables/orders
+
+        const loadTables = async () => {
+            const allTables = await fetchTables();
+            setTables(allTables.length > 0 ? allTables : []);
+        };
+
+        loadTables();
     }, []);
 
     const getQRUrl = (tableId: number) => {
@@ -62,6 +67,21 @@ export default function TablesPage() {
         { href: '/admin/analytics', label: 'Analytics', icon: '📈' }
     ];
 
+    const handleAddTable = async () => {
+        const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
+        const newTable: Table = {
+            id: newId,
+            name: `Table ${newId}`,
+            seats: 4,
+            isOccupied: false
+        };
+
+        const created = await createTable(newTable);
+        if (created) {
+            setTables([...tables, created]);
+        }
+    };
+
     return (
         <div className={styles.adminLayout}>
             {/* Sidebar */}
@@ -93,7 +113,10 @@ export default function TablesPage() {
                         <h1 className={styles.headerTitle}>Tables</h1>
                         <p className={styles.headerSubtitle}>Manage tables and generate QR codes</p>
                     </div>
-                    <button className="btn btn-primary">
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleAddTable}
+                    >
                         + Add Table
                     </button>
                 </div>

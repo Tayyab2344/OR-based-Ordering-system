@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getOrderById, onStorageChange } from '@/lib/storage';
+import { fetchOrder, formatPrice } from '@/lib/storage';
 import { Order, OrderStatus } from '@/lib/types';
-import { formatPrice } from '@/lib/storage';
 
 const statusSteps: { status: OrderStatus; label: string; icon: string }[] = [
     { status: 'pending', label: 'Order Placed', icon: '📝' },
@@ -28,26 +27,18 @@ export default function TrackingPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const loadOrder = () => {
-            const foundOrder = getOrderById(orderId);
+        const loadOrder = async () => {
+            const foundOrder = await fetchOrder(orderId);
             setOrder(foundOrder || null);
             setLoading(false);
         };
 
         loadOrder();
 
-        // Listen for updates
-        const unsubscribe = onStorageChange((key) => {
-            if (key.includes('orders')) {
-                loadOrder();
-            }
-        });
-
-        // Poll for updates every 3 seconds (simulates real-time)
+        // Poll for updates every 3 seconds
         const interval = setInterval(loadOrder, 3000);
 
         return () => {
-            unsubscribe();
             clearInterval(interval);
         };
     }, [orderId]);

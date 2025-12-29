@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
-import { formatPrice, addOrder, generateId } from '@/lib/storage';
+import { formatPrice, createOrder, generateId } from '@/lib/storage';
 import { Order, PaymentMethod } from '@/lib/types';
 
 const paymentMethods: { id: PaymentMethod; label: string; icon: string }[] = [
@@ -23,31 +23,34 @@ export default function CheckoutPage() {
 
     const totals = getTotals();
 
-    const handleConfirmOrder = () => {
+    const handleConfirmOrder = async () => {
         if (items.length === 0) return;
 
         setIsProcessing(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            const newOrderId = generateId();
-            const order: Order = {
-                id: newOrderId,
-                tableNumber,
-                items: [...items],
-                status: 'pending',
-                paymentMethod: selectedMethod,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                subtotal: totals.subtotal,
-                tax: totals.tax,
-                total: totals.total
-            };
+        // Simulate API call (Network delay simulated by async fetch itself, but keeping minor delay for UX if desired)
+        const newOrderId = generateId();
+        const order: Order = {
+            id: newOrderId,
+            tableNumber,
+            items: [...items],
+            status: 'pending',
+            paymentMethod: selectedMethod,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            subtotal: totals.subtotal,
+            tax: totals.tax,
+            total: totals.total
+        };
 
-            addOrder(order);
+        const result = await createOrder(order);
+        if (result) {
             clearCart();
             router.push(`/customer/${tableNumber}/tracking/${newOrderId}`);
-        }, 1500);
+        } else {
+            setIsProcessing(false);
+            alert('Failed to place order. Please try again.');
+        }
     };
 
     if (items.length === 0) {

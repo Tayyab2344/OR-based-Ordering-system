@@ -1,4 +1,4 @@
-import { Order, CartItem, MenuItem, Table } from './types';
+import { MenuItem, Order, Table, CartItem, OrderStatus } from './types';
 
 const STORAGE_KEYS = {
     ORDERS: 'restaurant_orders',
@@ -10,38 +10,63 @@ const STORAGE_KEYS = {
 // Helper to check if we're in browser
 const isBrowser = typeof window !== 'undefined';
 
-// Orders
-export function getOrders(): Order[] {
-    if (!isBrowser) return [];
-    const data = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return data ? JSON.parse(data) : [];
-}
-
-export function saveOrders(orders: Order[]): void {
-    if (!isBrowser) return;
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-    // Dispatch event for cross-tab sync
-    window.dispatchEvent(new StorageEvent('storage', {
-        key: STORAGE_KEYS.ORDERS,
-        newValue: JSON.stringify(orders)
-    }));
-}
-
-export function addOrder(order: Order): void {
-    const orders = getOrders();
-    orders.push(order);
-    saveOrders(orders);
-}
-
-export function updateOrderStatus(orderId: string, status: Order['status']): void {
-    const orders = getOrders();
-    const index = orders.findIndex(o => o.id === orderId);
-    if (index !== -1) {
-        orders[index].status = status;
-        orders[index].updatedAt = new Date().toISOString();
-        saveOrders(orders);
+// Orders API Functions
+export const fetchOrders = async (): Promise<Order[]> => {
+    try {
+        const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        return await res.json();
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        return [];
     }
-}
+};
+
+export const fetchOrder = async (id: string): Promise<Order | null> => {
+    try {
+        const res = await fetch(`/api/orders/${id}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (error) {
+        console.error('Error fetching order:', error);
+        return null;
+    }
+};
+
+export const createOrder = async (order: Order): Promise<Order | null> => {
+    try {
+        const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order),
+        });
+        if (!res.ok) throw new Error('Failed to create order');
+        return await res.json();
+    } catch (error) {
+        console.error('Error creating order:', error);
+        return null;
+    }
+};
+
+export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<Order | null> => {
+    try {
+        const res = await fetch(`/api/orders/${orderId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+        });
+        if (!res.ok) throw new Error('Failed to update status');
+        return await res.json();
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        return null;
+    }
+};
+
+// Remove legacy synchronous order functions
+export const getOrders = (): Order[] => { return []; };
+export const addOrder = (order: Order): void => { };
+export const updateOrder = (orderId: string, status: OrderStatus): void => { };
 
 export function getOrderById(orderId: string): Order | undefined {
     const orders = getOrders();
@@ -69,17 +94,48 @@ export function updateMenuItem(itemId: string, updates: Partial<MenuItem>): void
     }
 }
 
-// Tables
-export function getTables(): Table[] {
-    if (!isBrowser) return [];
-    const data = localStorage.getItem(STORAGE_KEYS.TABLES);
-    return data ? JSON.parse(data) : [];
-}
+// Table API Functions
+export const fetchTables = async (): Promise<Table[]> => {
+    try {
+        const res = await fetch('/api/tables');
+        if (!res.ok) throw new Error('Failed to fetch tables');
+        return await res.json();
+    } catch (error) {
+        console.error('Error fetching tables:', error);
+        return [];
+    }
+};
 
-export function saveTables(tables: Table[]): void {
-    if (!isBrowser) return;
-    localStorage.setItem(STORAGE_KEYS.TABLES, JSON.stringify(tables));
-}
+export const createTable = async (table: Table): Promise<Table | null> => {
+    try {
+        const res = await fetch('/api/tables', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(table),
+        });
+        if (!res.ok) throw new Error('Failed to create table');
+        return await res.json();
+    } catch (error) {
+        console.error('Error creating table:', error);
+        return null;
+    }
+};
+
+export const deleteTable = async (id: number): Promise<boolean> => {
+    try {
+        const res = await fetch(`/api/tables/${id}`, {
+            method: 'DELETE',
+        });
+        return res.ok;
+    } catch (error) {
+        console.error('Error deleting table:', error);
+        return false;
+    }
+};
+
+// Remove legacy synchronous table functions
+export const getTables = (): Table[] => { return []; };
+export const saveTables = (tables: Table[]): void => { };
 
 // Cart (per table)
 export function getCart(tableNumber: number): CartItem[] {
@@ -105,12 +161,7 @@ export function initializeData(menuItems: MenuItem[], tables: Table[], orders: O
     // Only initialize if not already set
     // Always update menu to reflect code changes (prices, images, etc.)
     saveMenu(menuItems);
-    if (!localStorage.getItem(STORAGE_KEYS.TABLES)) {
-        saveTables(tables);
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.ORDERS)) {
-        saveOrders(orders);
-    }
+    // Tables and Orders are now handled by API/Server
 }
 
 // Generate unique ID

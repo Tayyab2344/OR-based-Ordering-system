@@ -597,14 +597,90 @@
 @media (max-width: 1200px) {
     .menuPage {
         grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+        /* Header, Sidebar, Main, Cart */
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .mainContent {
+        overflow-y: auto;
+        padding-bottom: 80px;
+        /* Space for fixed cart button if needed */
     }
 
     .sidebar {
+        display: block;
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--space-2) var(--space-4);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-4);
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebarTitle,
+    .sidebarSubtitle,
+    .allergyNotice {
         display: none;
     }
 
+    .categoryList {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .categoryItem {
+        width: auto;
+        flex-shrink: 0;
+        padding: var(--space-2) var(--space-4);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+    }
+
+    .categoryItem.active {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+    }
+
+    /* Hide Cart Panel by default on mobile, we will use a drawer or toggle */
     .cartPanel {
         display: none;
+        /* Temporarily hidden, will add toggle */
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        width: 100%;
+        height: 100%;
+    }
+
+    .cartPanel.open {
+        display: flex;
+    }
+
+    .mobileCartBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 45;
+        background: var(--accent-primary);
+        color: #000;
+        border: none;
+        border-radius: var(--radius-full);
+        padding: var(--space-3) var(--space-6);
+        font-weight: 600;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        animation: slideUp 0.3s ease-out;
     }
 }
 

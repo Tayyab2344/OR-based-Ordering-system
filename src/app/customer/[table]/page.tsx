@@ -42,6 +42,7 @@ function MenuContent() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+    const [showMobileCart, setShowMobileCart] = useState(false);
 
     useEffect(() => {
         // Initialize data
@@ -200,12 +201,21 @@ function MenuContent() {
             </main>
 
             {/* Cart Panel */}
-            <aside className={styles.cartPanel}>
+            <aside className={`${styles.cartPanel} ${showMobileCart ? styles.open : ''}`}>
                 <div className={styles.cartHeader}>
                     <h3 className={styles.cartTitle}>Your Order</h3>
-                    {itemCount > 0 && (
-                        <span className={styles.itemCount}>{itemCount} items</span>
-                    )}
+                    <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                        {itemCount > 0 && (
+                            <span className={styles.itemCount}>{itemCount} items</span>
+                        )}
+                        <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => setShowMobileCart(false)}
+                            style={{ display: showMobileCart ? 'block' : 'none' }}
+                        >
+                            ✕
+                        </button>
+                    </div>
                 </div>
 
                 <div className={styles.cartItems}>
@@ -298,6 +308,30 @@ function MenuContent() {
                     </div>
                 )}
             </aside>
+
+            {/* Mobile Cart Button */}
+            {itemCount > 0 && !showMobileCart && (
+                <button
+                    className={styles.mobileCartBtn}
+                    onClick={() => setShowMobileCart(true)}
+                    style={{ display: 'none' }}
+                >
+                    <CartIcon /> View Cart ({itemCount})
+                </button>
+            )}
+
+            <style jsx>{`
+                @media (min-width: 1201px) {
+                    .${styles.mobileCartBtn} {
+                        display: none !important;
+                    }
+                }
+                @media (max-width: 1200px) {
+                    .${styles.mobileCartBtn} {
+                        display: flex !important;
+                    }
+                }
+            `}</style>
 
             {/* Customization Modal */}
             {showModal && selectedItem && (
