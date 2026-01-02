@@ -7,6 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { setSessionPersistenceByRole, recordLoginTimestamp } from '@/lib/auth-utils';
 import ThemeToggle from '@/components/ThemeToggle';
+import BrandIcon from '@/components/BrandIcon';
 import { EyeIcon, EyeOffIcon } from '@/components/Icons';
 import styles from '../../login/login.module.css';
 
@@ -70,94 +71,111 @@ export default function KitchenLoginPage() {
     };
 
     return (
-        <div className={styles.container}>
-            <div style={{ position: 'absolute', top: '2rem', right: '2rem' }}>
-                <ThemeToggle />
-            </div>
-            <div className={styles.card}>
-                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                    <div style={{
-                        width: '60px',
-                        height: '60px',
-                        background: 'var(--accent-primary)',
-                        borderRadius: 'var(--radius-lg)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '28px',
-                        margin: '0 auto 1rem',
-                        color: '#fff',
-                        fontWeight: 700
-                    }}>
-                        OR
+        <div className={styles.splitContainer}>
+            {/* Left Side - Image Panel */}
+            <div className={styles.imagePanel} style={{
+                background: `linear-gradient(135deg, rgba(244, 130, 34, 0.15) 0%, rgba(0, 0, 0, 0.95) 100%),
+                url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1920&q=80') center/cover no-repeat`
+            }}>
+                <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 10 }}>
+                    <ThemeToggle />
+                </div>
+                <div className={styles.decorativeAccent}></div>
+                <div className={styles.imageContent}>
+                    <div className={styles.brandBadge}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                            <path d="M7 2v20" />
+                            <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" />
+                        </svg>
+                        <span>Kitchen Display System</span>
                     </div>
-                    <h1 className={styles.title}>Abbottabad Kitchen</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        Order Management System
+                    <h2 className={styles.imageTitle}>
+                        Kitchen<br />
+                        <span>Control Station</span>
+                    </h2>
+                    <p className={styles.imageSubtitle}>
+                        View incoming orders, manage preparation workflow, and ensure timely delivery with our streamlined kitchen display system.
                     </p>
                 </div>
+            </div>
 
-                {error && <div className={styles.error}>{error}</div>}
-
-                <form onSubmit={handleLogin} className={styles.form}>
-                    <div className={styles.inputGroup}>
-                        <label>Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="name@example.com"
-                            required
-                        />
+            {/* Right Side - Login Form */}
+            <div className={styles.portalPanel}>
+                <div className={styles.portalContent}>
+                    <div className={styles.logoContainer}>
+                        <div className={styles.logoIcon}>
+                            <BrandIcon size={40} />
+                        </div>
+                        <h1 className={styles.title}>Kitchen Portal</h1>
+                        <p className={styles.subtitle}>Sign in to start your shift</p>
                     </div>
 
-                    <div className={styles.inputGroup}>
-                        <label>Password</label>
-                        <div className={styles.passwordWrapper}>
+                    {error && <div className={styles.error}>{error}</div>}
+
+                    <form onSubmit={handleLogin} className={styles.form}>
+                        <div className={styles.inputGroup}>
+                            <label>Email</label>
                             <input
-                                type={showPassword ? "text" : "password"}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="kitchen@abbottabadeats.com"
                                 required
                             />
-                            <button
-                                type="button"
-                                className={styles.eyeButton}
-                                onClick={() => setShowPassword(!showPassword)}
-                                tabIndex={-1}
-                            >
-                                {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
-                            </button>
                         </div>
+
+                        <div className={styles.inputGroup}>
+                            <label>Password</label>
+                            <div className={styles.passwordWrapper}>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className={styles.eyeButton}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className={styles.button}
+                            disabled={loading}
+                        >
+                            {loading ? 'Starting Shift...' : 'Start Shift'}
+                        </button>
+
+                        <button
+                            type="button"
+                            className={styles.linkButton}
+                            onClick={() => router.push('/reset-password')}
+                        >
+                            Forgot Password?
+                        </button>
+                    </form>
+
+                    <div className={styles.divider}>
+                        <span>or</span>
                     </div>
 
-                    <button
-                        type="submit"
-                        className={styles.button}
-                        disabled={loading}
-                    >
-                        {loading ? 'Starting Shift...' : 'Start Shift'}
-                    </button>
-
-                    <button
-                        type="button"
-                        className={styles.linkButton}
-                        onClick={() => router.push('/reset-password')}
-                    >
-                        Forgot Password?
-                    </button>
-                </form>
-
-                <div style={{
-                    marginTop: '1.5rem',
-                    paddingTop: '1.5rem',
-                    borderTop: '1px solid var(--border-color)',
-                    textAlign: 'center',
-                    fontSize: '0.85rem',
-                    color: 'var(--text-muted)'
-                }}>
-                    Admin? <a href="/admin/login" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Login here</a>
+                    <a href="/admin/login" className={styles.backLink}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                        Switch to Admin Portal
+                    </a>
                 </div>
             </div>
         </div>
